@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>听写练习（华文优先）</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      margin: 0;
+      font-family: "Noto Sans SC", sans-serif;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      height: 100vh; background-color: #f0f0f0;
+    }
+    .container {
+      text-align: center; padding: 20px; background: #fff; border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,.1); max-width: 720px; width: 92%;
+    }
+    .question { font-size: 28px; margin-bottom: 10px; }
+    .word { font-size: 34px; margin-bottom: 16px; }
+    .btns {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 15px;
+  margin-bottom: 14px;
+}
+
+.btn-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.search-box input {
+  font-size: 18px;
+  padding: 8px 12px;
+  width: 180px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.btn.search-btn {
+  background-color: #008cff;
+}
+
+.pinyin {
+  font-size: 18px;
+  color: #555;
+  margin-top: -5px;
+  margin-bottom: 25px;
+  font-style: italic;
+}
+
+    .btn {
+      font-size: 18px; padding: 10px 20px; border: none; border-radius: 8px;
+      background-color: #dc3545; color: #fff; cursor: pointer;
+    }
+    .btn.secondary { background-color: #6c757d; }
+    .btn.info { background-color: #dc3545; }
+    .btn.success { background-color: #dc3545; }
+    .btn.warning { background-color: #ffc107; color: #000; }
+    .meaning {
+      margin-top: 10px; font-size: 20px; background: #f8f9fa; border-radius: 8px;
+      padding: 12px; min-height: 60px; line-height: 1.6; white-space: pre-wrap;
+    }
+
+.test-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.test-btn {
+  font-size: 18px;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+}
+
+.reading-btn {
+  background-color: #007bff;
+}
+
+.meaning-btn {
+  background-color: #28a745;
+}
+
+.test-btn:hover {
+  opacity: 0.85;
+}
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="search-box">
+  <input 
+    type="text" 
+    id="searchInput" 
+    placeholder=""
+  >
+
+  <button 
+    class="btn search-btn" 
+    onclick="searchWord()">
+    Search
+  </button>
+</div>
+    <div class="question" id="question">题目 1</div>
+    <div class="word" id="word">—</div>
+    
+    <div class="btns">
+      <!-- 华文优先 -->
+       <div class="btn-row">
+      <button class="btn" onclick="playChineseWord()">朗读</button>
+      <button class="btn success" onclick="showEnglish()">English</button>
+      <button class="btn info" onclick="showMalay()">BM</button>
+      </div>
+
+      <div class="btn-row">
+      <button class="btn warning" onclick="showChineseSentence()">造句</button>
+      <button class="btn warning" onclick="showEnglishSentence()">Sentence</button>
+      <button class="btn warning" onclick="showMalaySentence()">Bina Ayat</button>
+      </div>
+
+      <div class="btn-row">
+      <button class="btn secondary" onclick="prevWord()">上一题</button>
+      <button class="btn secondary" onclick="nextWord()">下一题</button>
+      </div>
+
+    <div class="meaning" id="meaning"></div>
+
+    <div class="test-buttons">
+  <button class="test-btn reading-btn" onclick="goToReadingTest()">
+    测试阅读
+  </button>
+
+  <button class="test-btn meaning-btn" onclick="goToMeaningTest()">
+    测试意思
+  </button>
+</div>
+
+  </div>
+
+  <script>
+    // ====== 词库 ======
+    const zh = [
+      "五",
+  "人",
+  "从",
+  "先",
+  "四",
+  "对",
+  "将",
+  "开",
+  "才",
+  "把",
+  "最",
+  "看",
+  "站",
+  "答",
+  "红",
+  "绿",
+  "能",
+  "被",
+  "读",
+  "风",
+  "长方体",
+  "圆锥体",
+  "圆柱体",
+  "正方体",
+  "棱柱体",
+  "棱锥体",
+  "正方形",
+  "长方形",
+  "三角形",
+  "说一说",
+  "重要性",
+  "有什么",
+  "由什么",
+  "设计图",
+  "连一连",
+  "为什么",
+  "基本",
+  "形状",
+  "立体",
+  "学生",
+  "模型",
+  "建筑",
+  "球体",
+  "以下",
+  "物体",
+  "什么",
+  "活动",
+  "制作",
+  "说出",
+  "日期",
+  "练习",
+  "引导",
+  "各种",
+  "设计",
+  "空格",
+  "圆形",
+  "名称",
+  "组成",
+  "然后",
+  "写出",
+  "其他",
+  "作品",
+  "这些",
+  "改进",
+  "重要",
+  "怎样",
+  "画出",
+  "测试",
+  "容易",
+  "下图",
+  "显示",
+  "生活",
+  "找出",
+  "上图",
+  "软件",
+  "颜色",
+  "展示",
+  "指示",
+  "根据",
+  "使用",
+  "卡片",
+  "介绍",
+  "分享",
+  "改变",
+  "东西",
+  "变成",
+  "一个",
+  "数量",
+  "小玲",
+  "相同",
+  "例子",
+  "准备",
+  "虚线",
+  "打印",
+  "图画",
+  "折纸",
+  "鼓励",
+  "方法",
+  "图片",
+  "收集",
+  "发挥",
+  "机器",
+  "变形",
+  "用了",
+  "想象",
+  "房子",
+  "里的",
+  "情况",
+  "应用",
+  "填写",
+  "字母",
+  "吹倒",
+  "不会",
+  "描绘",
+  "用的",
+  "一种"
+    ];
+
+    const py = [
+  "wǔ",
+  "rén",
+  "cóng",
+  "xiān",
+  "sì",
+  "duì",
+  "jiāng",
+  "kāi",
+  "cái",
+  "bǎ",
+  "zuì",
+  "kàn",
+  "zhàn",
+  "dá",
+  "hóng",
+  "lǜ",
+  "néng",
+  "bèi",
+  "dú",
+  "fēng",
+  "cháng fāng tǐ",
+  "yuán zhuī tǐ",
+  "yuán zhù tǐ",
+  "zhèng fāng tǐ",
+  "léng zhù tǐ",
+  "léng zhuī tǐ",
+  "zhèng fāng xíng",
+  "cháng fāng xíng",
+  "sān jiǎo xíng",
+  "shuō yī shuō",
+  "zhòng yào xìng",
+  "yǒu shén me",
+  "yóu shén me",
+  "shè jì tú",
+  "lián yī lián",
+  "wèi shén me",
+  "jī běn",
+  "xíng zhuàng",
+  "lì tǐ",
+  "xué shēng",
+  "mó xíng",
+  "jiàn zhù",
+  "qiú tǐ",
+  "yǐ xià",
+  "wù tǐ",
+  "shén me",
+  "huó dòng",
+  "zhì zuò",
+  "shuō chū",
+  "rì qī",
+  "liàn xí",
+  "yǐn dǎo",
+  "gè zhǒng",
+  "shè jì",
+  "kòng gé",
+  "yuán xíng",
+  "míng chēng",
+  "zǔ chéng",
+  "rán hòu",
+  "xiě chū",
+  "qí tā",
+  "zuò pǐn",
+  "zhè xiē",
+  "gǎi jìn",
+  "zhòng yào",
+  "zěn yàng",
+  "huà chū",
+  "cè shì",
+  "róng yì",
+  "xià tú",
+  "xiǎn shì",
+  "shēng huó",
+  "zhǎo chū",
+  "shàng tú",
+  "ruǎn jiàn",
+  "yán sè",
+  "zhǎn shì",
+  "zhǐ shì",
+  "gēn jù",
+  "shǐ yòng",
+  "kǎ piàn",
+  "jiè shào",
+  "fēn xiǎng",
+  "gǎi biàn",
+  "dōng xi",
+  "biàn chéng",
+  "yī gè",
+  "shù liàng",
+  "xiǎo líng",
+  "xiāng tóng",
+  "lì zi",
+  "zhǔn bèi",
+  "xū xiàn",
+  "dǎ yìn",
+  "tú huà",
+  "zhé zhǐ",
+  "gǔ lì",
+  "fāng fǎ",
+  "tú piàn",
+  "shōu jí",
+  "fā huī",
+  "jī qì",
+  "biàn xíng",
+  "yòng le",
+  "xiǎng xiàng",
+  "fáng zi",
+  "lǐ de",
+  "qíng kuàng",
+  "yìng yòng",
+  "tián xiě",
+  "zì mǔ",
+  "chuī dǎo",
+  "bù huì",
+  "miáo huì",
+  "yòng de",
+  "yī zhǒng"
+];
+
+    const en = [
+      "five",
+  "person",
+  "from",
+  "first",
+  "four",
+  "correct",
+  "will",
+  "open",
+  "only then",
+  "hold",
+  "most",
+  "look",
+  "stand",
+  "answer",
+  "red",
+  "green",
+  "can",
+  "by",
+  "read",
+  "wind",
+  "cuboid",
+  "cone",
+  "cylinder",
+  "cube",
+  "prism",
+  "pyramid",
+  "square",
+  "rectangle",
+  "triangle",
+  "say it",
+  "importance",
+  "what is there",
+  "made of what",
+  "design plan",
+  "connect",
+  "why",
+  "basic",
+  "shape",
+  "three-dimensional",
+  "student",
+  "model",
+  "building",
+  "sphere",
+  "the following",
+  "object",
+  "what",
+  "activity",
+  "make",
+  "say out",
+  "date",
+  "practice",
+  "guide",
+  "various",
+  "design",
+  "blank space",
+  "circle",
+  "name",
+  "component",
+  "then",
+  "write out",
+  "other",
+  "artwork",
+  "these",
+  "improvement",
+  "important",
+  "how",
+  "draw out",
+  "test",
+  "easy",
+  "picture below",
+  "show",
+  "life",
+  "find out",
+  "picture above",
+  "software",
+  "colour",
+  "display",
+  "instruction",
+  "based on",
+  "use",
+  "card",
+  "introduce",
+  "share",
+  "change",
+  "thing",
+  "become",
+  "one",
+  "quantity",
+  "Xiao Ling",
+  "same",
+  "example",
+  "prepare",
+  "dotted line",
+  "print",
+  "picture",
+  "origami",
+  "encourage",
+  "method",
+  "image",
+  "collect",
+  "develop",
+  "machine",
+  "transform",
+  "used",
+  "imagine",
+  "house",
+  "inside",
+  "situation",
+  "application",
+  "fill in",
+  "letter",
+  "blow down",
+  "will not",
+  "depict",
+  "used for",
+  "a type of"
+    ];
+
+    const ms = [
+      "lima",
+  "orang",
+  "dari",
+  "dahulu",
+  "empat",
+  "betul",
+  "akan",
+  "buka",
+  "baru",
+  "bawa",
+  "paling",
+  "lihat",
+  "berdiri",
+  "jawab",
+  "merah",
+  "hijau",
+  "boleh",
+  "oleh",
+  "baca",
+  "angin",
+  "kuboid",
+  "kon",
+  "silinder",
+  "kubus",
+  "prisma",
+  "piramid",
+  "segi empat sama",
+  "segi empat tepat",
+  "segi tiga",
+  "cakap",
+  "kepentingan",
+  "ada apa",
+  "daripada apa",
+  "pelan reka bentuk",
+  "sambungkan",
+  "kenapa",
+  "asas",
+  "bentuk",
+  "tiga dimensi",
+  "murid",
+  "model",
+  "bangunan",
+  "sfera",
+  "berikut",
+  "objek",
+  "apa",
+  "aktiviti",
+  "buat",
+  "sebut",
+  "tarikh",
+  "latihan",
+  "bimbing",
+  "pelbagai",
+  "reka bentuk",
+  "ruang kosong",
+  "bulatan",
+  "nama",
+  "komponen",
+  "kemudian",
+  "tulis",
+  "lain",
+  "karya",
+  "ini",
+  "penambahbaikan",
+  "penting",
+  "bagaimana",
+  "lukis",
+  "ujian",
+  "senang",
+  "rajah di bawah",
+  "tunjuk",
+  "kehidupan",
+  "cari",
+  "rajah di atas",
+  "perisian",
+  "warna",
+  "pamerkan",
+  "arahan",
+  "berdasarkan",
+  "guna",
+  "kad",
+  "perkenalkan",
+  "kongsi",
+  "ubah",
+  "benda",
+  "menjadi",
+  "satu",
+  "kuantiti",
+  "Xiao Ling",
+  "sama",
+  "contoh",
+  "sediakan",
+  "garis putus-putus",
+  "cetak",
+  "gambar",
+  "origami",
+  "galakkan",
+  "cara",
+  "imej",
+  "kumpul",
+  "kembangkan",
+  "mesin",
+  "berubah bentuk",
+  "telah guna",
+  "bayangkan",
+  "rumah",
+  "di dalam",
+  "keadaan",
+  "aplikasi",
+  "isi",
+  "huruf",
+  "tiup hingga tumbang",
+  "tidak akan",
+  "gambarkan",
+  "yang digunakan",
+  "sejenis"
+    ];
+
+    const zhSentences = [
+      "我有五本书。",
+  "那个人是我的老师。",
+  "我从学校走路回家。",
+  "你先走，我随后就来。",
+  "桌子有四条腿。",
+  "你的答案是对的。",
+  "我将要去图书馆。",
+  "请把门打开。",
+  "他努力读书，才考到好成绩。",
+  "请把书放在桌子上。",
+  "他是我们班上最高的学生。",
+  "请看我这里。",
+  "请站起来回答问题。",
+  "我会回答这个问题。",
+  "这朵花是红色的。",
+  "叶子是绿色的。",
+  "我能帮你。",
+  "这本书是被他拿走的。",
+  "我喜欢读故事书。",
+  "风很大。",
+  "这是一个长方体。",
+  "这是一个圆锥体。",
+  "这是一个圆柱体。",
+  "这是一个正方体。",
+  "这是一个棱柱体。",
+  "这是一个棱锥体。",
+  "这是一个正方形。",
+  "这是一个长方形。",
+  "这是一个三角形。",
+  "请说一说你的想法。",
+  "学习的重要性很大。",
+  "桌子上有什么？",
+  "这个模型由什么做成？",
+  "这是一个设计图。",
+  "请把图片和文字连一连。",
+  "你为什么迟到？",
+  "这是基本的形状。",
+  "这个形状很特别。",
+  "这是一个立体模型。",
+  "他是一个好学生。",
+  "我做了一个飞机模型。",
+  "这座建筑很高。",
+  "地球是一个球体。",
+  "以下是我的答案。",
+  "这个物体很重。",
+  "这是什么？",
+  "我们在进行活动。",
+  "我们一起制作模型。",
+  "请说出你的答案。",
+  "今天的日期是十月一日。",
+  "我每天做练习。",
+  "老师引导我们学习。",
+  "这里有各种颜色的花。",
+  "这个设计很漂亮。",
+  "请在空格里填写答案。",
+  "这是一个圆形。",
+  "请写出它的名称。",
+  "这个模型由三个部分组成。",
+  "然后，请写出答案。",
+  "请写出你的答案。",
+  "其他同学也在做功课。",
+  "这幅作品很漂亮。",
+  "这些书是我的。",
+  "我要改进我的作文。",
+  "健康很重要。",
+  "怎样做这个模型？",
+  "请画出这个形状。",
+  "老师给我们做测试。",
+  "这道题很容易。",
+  "请参考下图。",
+  "请显示你的答案。",
+  "生活中的形状很多。",
+  "请找出正确的答案。",
+  "请参考上图。",
+  "我用软件画画。",
+  "我喜欢这个颜色。",
+  "请展示你的作品。",
+  "请根据指示做。",
+  "请使用这个工具。",
+  "我做了一张卡片。",
+  "请介绍你的作品。",
+  "我和朋友分享食物。",
+  "我要改变我的习惯。",
+  "桌子上有很多东西。",
+  "毛毛虫变成了蝴蝶。",
+  "我有一个苹果。",
+  "请数一数数量。",
+  "小玲是我的好朋友。",
+  "我们的答案相同。",
+  "这是一个例子。",
+  "我准备去旅行。",
+  "请沿着虚线剪。",
+  "请打印这份文件。",
+  "这幅图画很漂亮。",
+  "我喜欢折纸。",
+  "老师鼓励我们努力读书。",
+  "这是一个好方法。",
+  "这张图片很漂亮。",
+  "我收集了很多邮票。",
+  "请发挥你的创意。",
+  "这台机器很先进。",
+  "机器人可以变形。",
+  "他用了一小时做功课。",
+  "请想象你在天空飞。",
+  "我的房子很大。",
+  "盒子里的东西不见了。",
+  "这种情况很常见。",
+  "这个应用很好用。",
+  "请填写你的名字。",
+  "请写出这个字母。",
+  "大风把树吹倒了。",
+  "我不会做这道题。",
+  "请描绘这幅画。",
+  "这是用的工具。",
+  "这是一种新的方法。"
+    ];
+
+    const enSentences = [
+      "I have five books.",
+  "That person is my teacher.",
+  "I walk home from school.",
+  "You go first, I will come later.",
+  "A table has four legs.",
+  "Your answer is correct.",
+  "I will go to the library.",
+  "Please open the door.",
+  "He studied hard, only then did he get good results.",
+  "Please put the book on the table.",
+  "He is the tallest student in our class.",
+  "Please look at me.",
+  "Please stand up to answer the question.",
+  "I can answer this question.",
+  "This flower is red.",
+  "The leaves are green.",
+  "I can help you.",
+  "This book was taken by him.",
+  "I like to read storybooks.",
+  "The wind is very strong.",
+  "This is a cuboid.",
+  "This is a cone.",
+  "This is a cylinder.",
+  "This is a cube.",
+  "This is a prism.",
+  "This is a pyramid.",
+  "This is a square.",
+  "This is a rectangle.",
+  "This is a triangle.",
+  "Please say your thoughts.",
+  "The importance of learning is great.",
+  "What is on the table?",
+  "What is this model made of?",
+  "This is a design plan.",
+  "Please connect the pictures with the words.",
+  "Why are you late?",
+  "This is a basic shape.",
+  "This shape is very special.",
+  "This is a three-dimensional model.",
+  "He is a good student.",
+  "I made an aeroplane model.",
+  "This building is very tall.",
+  "The Earth is a sphere.",
+  "The following is my answer.",
+  "This object is very heavy.",
+  "What is this?",
+  "We are carrying out an activity.",
+  "We make a model together.",
+  "Please say out your answer.",
+  "Today's date is the first of October.",
+  "I do practice every day.",
+  "The teacher guides us in our learning.",
+  "There are various colours of flowers here.",
+  "This design is very beautiful.",
+  "Please fill in the answer in the blank space.",
+  "This is a circle.",
+  "Please write out its name.",
+  "This model is made up of three parts.",
+  "Then, please write out the answer.",
+  "Please write out your answer.",
+  "Other students are also doing their homework.",
+  "This artwork is very beautiful.",
+  "These books are mine.",
+  "I want to improve my essay.",
+  "Health is very important.",
+  "How do you make this model?",
+  "Please draw out this shape.",
+  "The teacher gave us a test.",
+  "This question is very easy.",
+  "Please refer to the picture below.",
+  "Please show your answer.",
+  "There are many shapes in life.",
+  "Please find out the correct answer.",
+  "Please refer to the picture above.",
+  "I use software to draw.",
+  "I like this colour.",
+  "Please display your artwork.",
+  "Please follow the instruction.",
+  "Please use this tool.",
+  "I made a card.",
+  "Please introduce your artwork.",
+  "I share food with my friend.",
+  "I want to change my habits.",
+  "There are many things on the table.",
+  "The caterpillar became a butterfly.",
+  "I have an apple.",
+  "Please count the quantity.",
+  "Xiao Ling is my good friend.",
+  "Our answers are the same.",
+  "This is an example.",
+  "I am preparing to travel.",
+  "Please cut along the dotted line.",
+  "Please print this document.",
+  "This picture is very beautiful.",
+  "I like origami.",
+  "The teacher encourages us to study hard.",
+  "This is a good method.",
+  "This image is very beautiful.",
+  "I collect a lot of stamps.",
+  "Please develop your creativity.",
+  "This machine is very advanced.",
+  "The robot can transform.",
+  "He used one hour to do his homework.",
+  "Please imagine you are flying in the sky.",
+  "My house is very big.",
+  "The thing inside the box is missing.",
+  "This situation is very common.",
+  "This application is very useful.",
+  "Please fill in your name.",
+  "Please write out this letter.",
+  "The strong wind blew down the tree.",
+  "I will not answer this question.",
+  "Please depict this drawing.",
+  "This is the tool used.",
+  "This is a type of new method."
+    ];
+
+    const msSentences = [
+      "Saya mempunyai lima buah buku.",
+  "Orang itu ialah cikgu saya.",
+  "Saya berjalan pulang dari sekolah.",
+  "Kamu pergi dahulu, saya datang kemudian.",
+  "Meja mempunyai empat kaki.",
+  "Jawapan kamu betul.",
+  "Saya akan pergi ke perpustakaan.",
+  "Sila buka pintu.",
+  "Dia belajar bersungguh-sungguh, baru mendapat keputusan yang baik.",
+  "Sila letak buku di atas meja.",
+  "Dia ialah murid paling tinggi di dalam kelas kami.",
+  "Sila lihat saya.",
+  "Sila berdiri untuk menjawab soalan.",
+  "Saya boleh menjawab soalan ini.",
+  "Bunga ini berwarna merah.",
+  "Daun berwarna hijau.",
+  "Saya boleh menolong anda.",
+  "Buku ini diambil oleh dia.",
+  "Saya suka membaca buku cerita.",
+  "Angin sangat kuat.",
+  "Ini ialah sebuah kuboid.",
+  "Ini ialah sebuah kon.",
+  "Ini ialah sebuah silinder.",
+  "Ini ialah sebuah kubus.",
+  "Ini ialah sebuah prisma.",
+  "Ini ialah sebuah piramid.",
+  "Ini ialah sebuah segi empat sama.",
+  "Ini ialah sebuah segi empat tepat.",
+  "Ini ialah sebuah segi tiga.",
+  "Sila cakap tentang pendapat kamu.",
+  "Kepentingan belajar sangat besar.",
+  "Ada apa di atas meja?",
+  "Model ini diperbuat daripada apa?",
+  "Ini ialah pelan reka bentuk.",
+  "Sila sambungkan gambar dengan perkataan.",
+  "Kenapa kamu lambat?",
+  "Ini ialah bentuk asas.",
+  "Bentuk ini sangat istimewa.",
+  "Ini ialah model tiga dimensi.",
+  "Dia seorang murid yang baik.",
+  "Saya membuat model kapal terbang.",
+  "Bangunan ini sangat tinggi.",
+  "Bumi ialah sebuah sfera.",
+  "Berikut ialah jawapan saya.",
+  "Objek ini sangat berat.",
+  "Apa ini?",
+  "Kami sedang menjalankan aktiviti.",
+  "Kami membuat model bersama-sama.",
+  "Sila sebut jawapan kamu.",
+  "Tarikh hari ini ialah satu Oktober.",
+  "Saya membuat latihan setiap hari.",
+  "Cikgu membimbing kami belajar.",
+  "Terdapat pelbagai warna bunga di sini.",
+  "Reka bentuk ini sangat cantik.",
+  "Sila isi jawapan di ruang kosong.",
+  "Ini ialah sebuah bulatan.",
+  "Sila tulis namanya.",
+  "Model ini terdiri daripada tiga bahagian.",
+  "Kemudian, sila tulis jawapan.",
+  "Sila tulis jawapan kamu.",
+  "Murid lain juga sedang membuat kerja rumah.",
+  "Karya ini sangat cantik.",
+  "Buku-buku ini ialah milik saya.",
+  "Saya mahu menambah baik karangan saya.",
+  "Kesihatan sangat penting.",
+  "Bagaimana membuat model ini?",
+  "Sila lukis bentuk ini.",
+  "Cikgu memberi kami ujian.",
+  "Soalan ini sangat senang.",
+  "Sila rujuk rajah di bawah.",
+  "Sila tunjukkan jawapan kamu.",
+  "Terdapat banyak bentuk dalam kehidupan.",
+  "Sila cari jawapan yang betul.",
+  "Sila rujuk rajah di atas.",
+  "Saya menggunakan perisian untuk melukis.",
+  "Saya suka warna ini.",
+  "Sila pamerkan karya kamu.",
+  "Sila ikut arahan.",
+  "Sila guna alat ini.",
+  "Saya membuat sekeping kad.",
+  "Sila perkenalkan karya kamu.",
+  "Saya berkongsi makanan dengan kawan saya.",
+  "Saya mahu mengubah tabiat saya.",
+  "Terdapat banyak benda di atas meja.",
+  "Ulat menjadi kupu-kupu.",
+  "Saya mempunyai sebiji epal.",
+  "Sila kira kuantitinya.",
+  "Xiao Ling ialah kawan baik saya.",
+  "Jawapan kami sama.",
+  "Ini ialah satu contoh.",
+  "Saya bersedia untuk melancong.",
+  "Sila potong mengikut garis putus-putus.",
+  "Sila cetak dokumen ini.",
+  "Gambar ini sangat cantik.",
+  "Saya suka origami.",
+  "Cikgu menggalakkan kami belajar bersungguh-sungguh.",
+  "Ini ialah satu cara yang baik.",
+  "Imej ini sangat cantik.",
+  "Saya mengumpul banyak setem.",
+  "Sila kembangkan kreativiti kamu.",
+  "Mesin ini sangat canggih.",
+  "Robot boleh berubah bentuk.",
+  "Dia menggunakan satu jam untuk membuat kerja rumah.",
+  "Sila bayangkan kamu terbang di langit.",
+  "Rumah saya sangat besar.",
+  "Benda di dalam kotak itu hilang.",
+  "Keadaan ini sangat biasa.",
+  "Aplikasi ini sangat berguna.",
+  "Sila isi nama kamu.",
+  "Sila tulis huruf ini.",
+  "Angin kuat meniup pokok hingga tumbang.",
+  "Saya tidak akan menjawab soalan ini.",
+  "Sila gambarkan lukisan ini.",
+  "Ini ialah alat yang digunakan.",
+  "Ini ialah sejenis kaedah baharu."
+    ];
+
+    // ===== DOM & 语音 =====
+    let currentIndex = 0;
+    const questionDiv = document.getElementById('question');
+    const wordDiv = document.getElementById('word');
+    const pinyinDiv = document.getElementById('pinyin');
+    const meaningDiv = document.getElementById('meaning');
+
+    function setMeaning(text) { meaningDiv.textContent = text || ''; }
+
+    // 统一的朗读函数（默认：慢速 0.4、音高 0.6）
+    function speak(text, lang, preferNames = [], rate = 0.4, pitch = 0.6) {
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = lang;
+      u.rate = rate;
+      u.pitch = pitch;
+
+      const trySpeak = () => {
+        const voices = speechSynthesis.getVoices() || [];
+        let candidates = voices.filter(v => (v.lang || '').toLowerCase().startsWith(lang.toLowerCase()));
+        // 如果没有马来语，回退印尼语
+        if (!candidates.length && lang.toLowerCase().startsWith('ms')) {
+          candidates = voices.filter(v => (v.lang || '').toLowerCase().startsWith('id'));
+          if (candidates.length) u.lang = 'id-ID';
+        }
+        for (const key of preferNames) {
+          const found = candidates.find(v => (v.name || '').toLowerCase().includes(key.toLowerCase()));
+          if (found) { u.voice = found; break; }
+        }
+        if (!u.voice && candidates.length) u.voice = candidates[0];
+        speechSynthesis.cancel();
+        speechSynthesis.speak(u);
+      };
+
+      if (speechSynthesis.getVoices().length === 0) {
+        speechSynthesis.onvoiceschanged = trySpeak;
+      }
+      trySpeak();
+    }
+
+    // ===== 华文为主（按钮函数不再覆盖速率/音高）=====
+    function playChineseWord() {
+  const text = zh[currentIndex] || '';
+  const pinyin = py[currentIndex] || '';
+
+  setMeaning(pinyin);
+
+  speak(text, 'zh-CN', ['Xiaoyi','Microsoft','male']);
+}
+
+    function showEnglish() {
+      const text = en[currentIndex] || '(待添加英文)';
+      setMeaning(text);
+      speak(text, 'en-US', ['Google','Microsoft','Natural']);
+    }
+
+    function showMalay() {
+      const text = ms[currentIndex] || '(待添加马来文)';
+      setMeaning(text);
+      speak(text, 'ms-MY', ['Malay','Bahasa','Microsoft']);
+    }
+
+    function showChineseSentence() {
+      const text = zhSentences[currentIndex] || '(待添加华文造句)';
+      setMeaning(text);
+      speak(text, 'zh-CN', ['Xiaoyi','Microsoft']);
+    }
+
+    function showEnglishSentence() {
+      const text = enSentences[currentIndex] || '(待添加英文句子)';
+      setMeaning(text);
+      speak(text, 'en-US', ['Google','Microsoft']);
+    }
+
+    function showMalaySentence() {
+      const text = msSentences[currentIndex] || '(待添加马来文句子)';
+      setMeaning(text);
+      speak(text, 'ms-MY', ['Malay','Bahasa','Microsoft']);
+    }
+
+    function nextWord() {
+      if (currentIndex < zh.length - 1) {
+        currentIndex++;
+        updateQuestion();
+      }
+    }
+
+    function prevWord() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        updateQuestion();
+      }
+    }
+
+    function updateQuestion() {
+  questionDiv.innerText = `题目 ${currentIndex + 1}`;
+  wordDiv.innerText = zh[currentIndex] || '—';
+  setMeaning('');
+}
+
+
+// ===== 搜索功能 =====
+function searchWord() {
+
+  const keyword = document.getElementById("searchInput").value.trim();
+
+  if (!keyword) {
+    alert("请输入要搜索的词语");
+    return;
+  }
+
+
+  const index = zh.indexOf(keyword);
+
+
+  if (index !== -1) {
+
+    currentIndex = index;
+    updateQuestion();
+
+  } else {
+
+    alert("没有找到：" + keyword);
+
+  }
+
+}
+
+function goToReadingTest() {
+  window.location.href = "Reading/ReadingTest.html";
+}
+
+function goToMeaningTest() {
+  window.location.href = "Meaning/MeaningTest.html";
+}
+
+updateQuestion();
+  </script>
+</body>
+</html>
