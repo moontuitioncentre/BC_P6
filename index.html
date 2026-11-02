@@ -1,0 +1,1809 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>听写练习（华文优先）</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      margin: 0;
+      font-family: "Noto Sans SC", sans-serif;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      height: 100vh; background-color: #f0f0f0;
+    }
+    .container {
+      text-align: center; padding: 20px; background: #fff; border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,.1); max-width: 720px; width: 92%;
+    }
+    .question { font-size: 28px; margin-bottom: 10px; }
+    .word { font-size: 34px; margin-bottom: 16px; }
+    .btns {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 15px;
+  margin-bottom: 14px;
+}
+
+.btn-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.search-box input {
+  font-size: 18px;
+  padding: 8px 12px;
+  width: 180px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.btn.search-btn {
+  background-color: #008cff;
+}
+
+.pinyin {
+  font-size: 18px;
+  color: #555;
+  margin-top: -5px;
+  margin-bottom: 25px;
+  font-style: italic;
+}
+
+    .btn {
+      font-size: 18px; padding: 10px 20px; border: none; border-radius: 8px;
+      background-color: #dc3545; color: #fff; cursor: pointer;
+    }
+    .btn.secondary { background-color: #6c757d; }
+    .btn.info { background-color: #dc3545; }
+    .btn.success { background-color: #dc3545; }
+    .btn.warning { background-color: #ffc107; color: #000; }
+    .meaning {
+      margin-top: 10px; font-size: 20px; background: #f8f9fa; border-radius: 8px;
+      padding: 12px; min-height: 60px; line-height: 1.6; white-space: pre-wrap;
+    }
+
+.test-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.test-btn {
+  font-size: 18px;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+}
+
+.reading-btn {
+  background-color: #007bff;
+}
+
+.meaning-btn {
+  background-color: #28a745;
+}
+
+.test-btn:hover {
+  opacity: 0.85;
+}
+
+.set-selector {
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 18px;
+}
+
+.set-selector select {
+  font-size: 18px;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: white;
+}
+
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <div class="container">
+
+    <!-- 新增：Set 选择菜单 -->
+    <div class="set-selector">
+      <label for="setSelect">选择词汇 Set：</label>
+      <select id="setSelect" onchange="changeSet()">
+        <option value="Set 1">Set 1</option>
+        <option value="Set 2">Set 2</option>
+        <option value="Set 3">Set 3</option>
+      </select>
+    </div>
+
+    <div class="search-box">
+  <input 
+    type="text" 
+    id="searchInput" 
+    placeholder=""
+  >
+
+  <button 
+    class="btn search-btn" 
+    onclick="searchWord()">
+    Search
+  </button>
+</div>
+    <div class="question" id="question">题目 1</div>
+    <div class="word" id="word">—</div>
+    
+    <div class="btns">
+      <!-- 华文优先 -->
+       <div class="btn-row">
+      <button class="btn" onclick="playChineseWord()">朗读</button>
+      <button class="btn success" onclick="showEnglish()">English</button>
+      <button class="btn info" onclick="showMalay()">BM</button>
+      </div>
+
+      <div class="btn-row">
+      <button class="btn warning" onclick="showChineseSentence()">造句</button>
+      <button class="btn warning" onclick="showEnglishSentence()">Sentence</button>
+      <button class="btn warning" onclick="showMalaySentence()">Bina Ayat</button>
+      </div>
+
+      <div class="btn-row">
+      <button class="btn secondary" onclick="prevWord()">上一题</button>
+      <button class="btn secondary" onclick="nextWord()">下一题</button>
+      </div>
+
+    <div class="meaning" id="meaning"></div>
+
+    <div class="test-buttons">
+  <button class="test-btn reading-btn" onclick="goToReadingTest()">
+    测试阅读
+  </button>
+
+  <button class="test-btn meaning-btn" onclick="goToMeaningTest()">
+    测试意思
+  </button>
+</div>
+
+  </div>
+
+  <script>
+    // ====== 词库 ======
+    const zh = [
+      "什么",
+  "句子",
+  "上面",
+  "阅读",
+  "一个",
+  "我们",
+  "自己",
+  "哪项",
+  "日期",
+  "然后",
+  "词语",
+  "正确",
+  "问题",
+  "可以",
+  "回答",
+  "没有",
+  "华文",
+  "下面",
+  "文字",
+  "老师",
+  "妈妈",
+  "根据",
+  "他们",
+  "哪个",
+  "他的",
+  "起来",
+  "我的",
+  "内容",
+  "学习",
+  "意思",
+  "这个",
+  "读音",
+  "到了",
+  "孩子",
+  "相同",
+  "父亲",
+  "作者",
+  "生活",
+  "标准",
+  "感到",
+  "大家",
+  "因为",
+  "理解",
+  "说明",
+  "同学",
+  "以下",
+  "母亲",
+  "人们",
+  "课文",
+  "认为",
+  "小心翼翼",
+  "独一无二",
+  "桃园结义",
+  "宽大为怀",
+  "一朝一夕",
+  "牵动人心",
+  "大名鼎鼎",
+  "大吃一惊",
+  "苦不堪言",
+  "坚持不懈",
+  "张牙舞爪",
+  "各种各样",
+  "不以为然",
+  "不折不扣",
+  "趾高气扬",
+  "倾盆大雨",
+  "迫不及待",
+  "肃然起敬",
+  "川流不息",
+  "生机勃勃",
+  "夺眶而出",
+  "肝胆相照",
+  "民不聊生",
+  "聪明伶俐",
+  "层出不穷",
+  "聚精会神",
+  "不辞劳苦",
+  "冲锋陷阵",
+  "雨后春笋",
+  "拭目以待",
+  "恍然大悟",
+  "气势磅礴",
+  "出乎意料",
+  "志同道合",
+  "无所不能",
+  "金碧辉煌",
+  "怨声载道",
+  "不慌不忙",
+  "热血沸腾",
+  "兴高采烈",
+  "名副其实",
+  "略胜一筹",
+  "有始有终",
+  "破破烂烂",
+  "目不斜视",
+  "一目十行",
+  "吃亏是福",
+  "相依为命",
+  "惊弓之鸟",
+  "深信不疑"
+    ];
+
+    const py = [
+  "shén me",
+  "jù zi",
+  "shàng miàn",
+  "yuè dú",
+  "yī gè",
+  "wǒ men",
+  "zì jǐ",
+  "nǎ xiàng",
+  "rì qī",
+  "rán hòu",
+  "cí yǔ",
+  "zhèng què",
+  "wèn tí",
+  "kě yǐ",
+  "huí dá",
+  "méi yǒu",
+  "huá wén",
+  "xià miàn",
+  "wén zì",
+  "lǎo shī",
+  "mā ma",
+  "gēn jù",
+  "tā men",
+  "nǎ gè",
+  "tā de",
+  "qǐ lái",
+  "wǒ de",
+  "nèi róng",
+  "xué xí",
+  "yì si",
+  "zhè gè",
+  "dú yīn",
+  "dào le",
+  "hái zi",
+  "xiāng tóng",
+  "fù qīn",
+  "zuò zhě",
+  "shēng huó",
+  "biāo zhǔn",
+  "gǎn dào",
+  "dà jiā",
+  "yīn wèi",
+  "lǐ jiě",
+  "shuō míng",
+  "tóng xué",
+  "yǐ xià",
+  "mǔ qīn",
+  "rén men",
+  "kè wén",
+  "rèn wéi",
+  "xiǎo xīn yì yì\n做事非常小心，不敢马虎。",
+  "dú yī wú èr\n只有一个，没有相同的。",
+  "táo yuán jié yì\n刘备、关羽、张飞在桃园结拜为兄弟，比喻结为生死之交。",
+  "kuān dà wéi huái\n心胸宽广，对人宽容。",
+  "yī zhāo yī xī\n一个早晨或一个晚上，形容很短的时间。",
+  "qiān dòng rén xīn\n让人感动、关心或担心。",
+  "dà míng dǐng dǐng\n非常有名。",
+  "dà chī yī jīng\n非常惊讶。",
+  "kǔ bù kān yán\n痛苦得无法用言语形容。",
+  "jiān chí bù xiè\n一直坚持，不放弃。",
+  "zhāng yá wǔ zhǎo\n张开嘴露出牙齿，挥舞爪子，形容凶狠的样子。",
+  "gè zhǒng gè yàng\n很多不同的种类。",
+  "bù yǐ wéi rán\n不认为是对的，不同意。",
+  "bù zhé bù kòu\n完完全全，十足。",
+  "zhǐ gāo qì yáng\n走路时脚抬得很高，形容骄傲自大。",
+  "qīng pén dà yǔ\n雨下得非常大。",
+  "pò bù jí dài\n急得等不及了。",
+  "sù rán qǐ jìng\n心中产生敬佩的感情。",
+  "chuān liú bù xī\n像河水一样流个不停，形容人或车很多。",
+  "shēng jī bó bó\n充满生命力。",
+  "duó kuàng ér chū\n眼泪一下子从眼眶流出来。",
+  "gān dǎn xiāng zhào\n彼此真心相待，非常忠诚。",
+  "mín bù liáo shēng\n人民没有办法生活下去。",
+  "cōng míng líng lì\n聪明、灵活、机灵。",
+  "céng chū bù qióng\n一个接一个出现，没有停止。",
+  "jù jīng huì shén\n集中精神，非常专心。",
+  "bù cí láo kǔ\n不怕辛苦，努力工作。",
+  "chōng fēng xiàn zhèn\n冲在最前面，勇敢作战。",
+  "yǔ hòu chūn sǔn\n春天下雨后竹笋长得很快，比喻新事物大量出现。",
+  "shì mù yǐ dài\n擦亮眼睛等着看，表示期待。",
+  "huǎng rán dà wù\n一下子完全明白了。",
+  "qì shì bàng bó\n气势非常宏大。",
+  "chū hū yì liào\n没有想到，超出预料。",
+  "zhì tóng dào hé\n志向相同，意见一致。",
+  "wú suǒ bù néng\n什么都能做，没有做不到的。",
+  "jīn bì huī huáng\n形容建筑物非常华丽、光彩夺目。",
+  "yuàn shēng zài dào\n到处都有抱怨的声音。",
+  "bù huāng bù máng\n不着急，很镇定。",
+  "rè xuè fèi téng\n情绪非常激动，充满热情。",
+  "xìng gāo cǎi liè\n非常高兴，兴致很高。",
+  "míng fù qí shí\n名声和实际相符合，真的很好。",
+  "lüè shèng yī chóu\n稍微好一点。",
+  "yǒu shǐ yǒu zhōng\n有开始也有结束，做事坚持到底。",
+  "pò pò làn làn\n又破又烂，很旧很坏。",
+  "mù bù xié shì\n眼睛不往旁边看，形容专心或守规矩。",
+  "yī mù shí háng\n一眼看十行，形容读书很快。",
+  "chī kuī shì fú\n吃一点亏不是坏事，反而是一种福气。",
+  "xiāng yī wéi mìng\n互相依靠，一起生活。",
+  "jīng gōng zhī niǎo\n被弓箭吓过的鸟，比喻受过惊吓的人，一点动静就害怕。",
+  "shēn xìn bù yí\n非常相信，一点也不怀疑。"
+];
+
+    const en = [
+      "what",
+  "sentence",
+  "above",
+  "reading",
+  "one",
+  "we",
+  "oneself",
+  "which item",
+  "date",
+  "then",
+  "word",
+  "correct",
+  "question",
+  "can",
+  "answer",
+  "do not have",
+  "Chinese language",
+  "below",
+  "writing",
+  "teacher",
+  "mother",
+  "based on",
+  "they",
+  "which",
+  "his",
+  "get up",
+  "my",
+  "content",
+  "study",
+  "meaning",
+  "this",
+  "pronunciation",
+  "arrived",
+  "child",
+  "same",
+  "father",
+  "author",
+  "life",
+  "standard",
+  "feel",
+  "everyone",
+  "because",
+  "understand",
+  "explanation",
+  "classmate",
+  "the following",
+  "mother",
+  "people",
+  "text",
+  "think",
+  "very careful",
+  "one of a kind",
+  "sworn brotherhood in the peach garden",
+  "broad-minded",
+  "in a short time",
+  "move people's hearts",
+  "very famous",
+  "greatly shocked",
+  "cannot bear the hardship",
+  "persevere without giving up",
+  "bare fangs and brandish claws",
+  "all kinds of",
+  "disagree",
+  "one hundred percent",
+  "arrogant",
+  "heavy rain",
+  "cannot wait",
+  "feel deep respect",
+  "flow endlessly",
+  "full of life",
+  "burst into tears",
+  "treat each other with sincerity",
+  "people live in misery",
+  "clever and smart",
+  "keep appearing",
+  "concentrate fully",
+  "not afraid of hardship",
+  "charge into battle",
+  "spring up like mushrooms",
+  "wait and see",
+  "suddenly understand",
+  "majestic",
+  "beyond expectation",
+  "share the same goal",
+  "capable of everything",
+  "golden and splendid",
+  "full of complaints",
+  "calm and unhurried",
+  "blood boiling with passion",
+  "very happy",
+  "true to its name",
+  "slightly better",
+  "have a beginning and an end",
+  "broken and torn",
+  "not look sideways",
+  "read ten lines at a glance",
+  "suffering loss is a blessing",
+  "depend on each other",
+  "a bird startled by the bow",
+  "believe completely"
+    ];
+
+    const ms = [
+      "apa",
+  "ayat",
+  "di atas",
+  "bacaan",
+  "satu",
+  "kami",
+  "diri sendiri",
+  "yang mana",
+  "tarikh",
+  "kemudian",
+  "perkataan",
+  "betul",
+  "soalan",
+  "boleh",
+  "jawab",
+  "tiada",
+  "Bahasa Cina",
+  "di bawah",
+  "tulisan",
+  "cikgu",
+  "ibu",
+  "berdasarkan",
+  "mereka",
+  "yang mana",
+  "dia punya",
+  "bangun",
+  "saya punya",
+  "kandungan",
+  "belajar",
+  "makna",
+  "ini",
+  "sebutan",
+  "sudah sampai",
+  "kanak-kanak",
+  "sama",
+  "ayah",
+  "penulis",
+  "kehidupan",
+  "standard",
+  "berasa",
+  "semua orang",
+  "kerana",
+  "faham",
+  "penjelasan",
+  "rakan sekelas",
+  "berikut",
+  "ibu",
+  "orang",
+  "teks",
+  "berpendapat",
+  "sangat berhati-hati",
+  "unik",
+  "bersumpah menjadi saudara di taman pic",
+  "berhati lapang",
+  "dalam masa yang singkat",
+  "menyentuh hati",
+  "sangat terkenal",
+  "sangat terkejut",
+  "menderita hingga tidak terkira",
+  "berterusan tanpa berputus asa",
+  "menunjukkan gigi dan cakar",
+  "pelbagai jenis",
+  "tidak bersetuju",
+  "seratus peratus",
+  "berlagak sombong",
+  "hujan lebat",
+  "tidak sabar",
+  "berasa sangat hormat",
+  "mengalir tanpa henti",
+  "penuh tenaga hidup",
+  "air mata mengalir keluar",
+  "ikhlas dan setia antara satu sama lain",
+  "rakyat hidup menderita",
+  "cerdas dan bijak",
+  "muncul tanpa henti",
+  "tumpukan perhatian sepenuhnya",
+  "tidak takut penat",
+  "menyerbu ke medan perang",
+  "tumbuh seperti cendawan selepas hujan",
+  "tunggu dan lihat",
+  "tiba-tiba faham",
+  "megah dan hebat",
+  "di luar jangkaan",
+  "sama cita-cita",
+  "boleh buat semua",
+  "berkilauan emas dan hijau",
+  "banyak rungutan di mana-mana",
+  "tidak tergesa-gesa",
+  "semangat membara",
+  "sangat gembira",
+  "benar-benar layak dengan namanya",
+  "sedikit lebih baik",
+  "ada permulaan dan akhir",
+  "rosak teruk",
+  "tidak pandang ke tepi",
+  "baca sepuluh baris sekali pandang",
+  "rugi itu berkat",
+  "bergantung antara satu sama lain",
+  "burung yang pernah ditakuti busur",
+  "percaya sepenuhnya"
+    ];
+
+    const zhSentences = [
+      "你在做什么？",
+  "请读这个句子。",
+  "字写在书的上面。",
+  "我喜欢阅读。",
+  "我有一个苹果。",
+  "我们是好学生。",
+  "我自己会穿衣服。",
+  "哪项是你的书包？",
+  "今天是几月几日？",
+  "我先吃饭，然后做功课。",
+  "请用这个词语造句。",
+  "你的答案很正确。",
+  "我有一个问题。",
+  "我可以帮你。",
+  "请回答我的问题。",
+  "我没有铅笔。",
+  "我喜欢上华文课。",
+  "请写在下面。",
+  "请在格子里写文字。",
+  "老师教我们读书。",
+  "妈妈在厨房煮饭。",
+  "请根据课文回答问题。",
+  "他们是我的好朋友。",
+  "哪个是你的铅笔？",
+  "他的书包很重。",
+  "请站起来。",
+  "这是我的书。",
+  "这本书的内容很有趣。",
+  "我要努力学习。",
+  "这个字是什么意思？",
+  "这个字很难写。",
+  "这个字的读音是什么？",
+  "我们到了学校。",
+  "那个孩子很可爱。",
+  "我们的答案相同。",
+  "父亲去工作了。",
+  "他是这本书的作者。",
+  "我们的生活很幸福。",
+  "这是标准答案。",
+  "我感到很开心。",
+  "大家都是好学生。",
+  "因为下雨，我们不出门。",
+  "我理解你的意思。",
+  "老师给我们说明这道题。",
+  "他是我的同学。",
+  "以下是我的答案。",
+  "母亲很爱我。",
+  "人们在公园里散步。",
+  "今天我们要学新课文。",
+  "我认为你是对的。",
+  "他小心翼翼地走路。",
+  "每个人都是独一无二的。",
+  "桃园结义讲的是刘备、关羽和张飞结拜的故事。",
+  "我们要宽大为怀，原谅别人。",
+  "学好华文不是一朝一夕的事。",
+  "这个故事很牵动人心。",
+  "他是一位大名鼎鼎的医生。",
+  "听到这消息，我大吃一惊。",
+  "他病得苦不堪言。",
+  "他坚持不懈地练习跑步。",
+  "老虎张牙舞爪地扑过来。",
+  "商店里有各种各样的玩具。",
+  "他不以为然，继续玩。",
+  "他是一个不折不扣的好人。",
+  "他趾高气扬地走路。",
+  "今天下了一场倾盆大雨。",
+  "我迫不及待地想回家。",
+  "看到老师，我肃然起敬。",
+  "马路上车辆川流不息。",
+  "春天来了，大地生机勃勃。",
+  "她感动得眼泪夺眶而出。",
+  "他们是肝胆相照的好朋友。",
+  "战争时期，民不聊生。",
+  "她聪明伶俐，成绩很好。",
+  "新开的商店层出不穷。",
+  "他聚精会神地读书。",
+  "他不辞劳苦地工作。",
+  "士兵们勇敢地冲锋陷阵。",
+  "新开的商店如雨后春笋般出现。",
+  "请大家拭目以待。",
+  "我恍然大悟，明白答案了。",
+  "这个表演气势磅礴。",
+  "他考到第一名，出乎意料。",
+  "我们志同道合，是好朋友。",
+  "他以为自己无所不能。",
+  "这座宫殿金碧辉煌。",
+  "人民怨声载道。",
+  "他不慌不忙地回答问题。",
+  "听到好消息，我热血沸腾。",
+  "大家兴高采烈地庆祝。",
+  "他是一位名副其实的好老师。",
+  "我的成绩略胜一筹。",
+  "做事要有始有终。",
+  "他的衣服破破烂烂。",
+  "他目不斜视地走路。",
+  "他一目十行地看书。",
+  "吃亏是福，不要太计较。",
+  "他们相依为命。",
+  "他像惊弓之鸟一样害怕。",
+  "我深信不疑。"
+    ];
+
+    const enSentences = [
+      "What are you doing?",
+  "Please read this sentence.",
+  "The word is written on the top.",
+  "I like reading.",
+  "I have an apple.",
+  "We are good students.",
+  "I can wear clothes by myself.",
+  "Which bag is yours?",
+  "What is the date today?",
+  "I eat first, then do my homework.",
+  "Please make a sentence with this word.",
+  "Your answer is very correct.",
+  "I have a question.",
+  "I can help you.",
+  "Please answer my question.",
+  "I do not have a pencil.",
+  "I like to learn Chinese.",
+  "Please write below.",
+  "Please write the writing in the box.",
+  "The teacher teaches us to read.",
+  "Mother is cooking in the kitchen.",
+  "Please answer the questions based on the text.",
+  "They are my good friends.",
+  "Which pencil is yours?",
+  "His bag is very heavy.",
+  "Please stand up.",
+  "This is my book.",
+  "The content of this book is very interesting.",
+  "I want to study hard.",
+  "What is the meaning of this word?",
+  "This word is very hard to write.",
+  "What is the pronunciation of this word?",
+  "We have arrived at school.",
+  "That child is very cute.",
+  "Our answers are the same.",
+  "Father went to work.",
+  "He is the author of this book.",
+  "Our life is very happy.",
+  "This is the standard answer.",
+  "I feel very happy.",
+  "Everyone is a good student.",
+  "Because it is raining, we do not go out.",
+  "I understand your meaning.",
+  "The teacher gave us an explanation of this question.",
+  "He is my classmate.",
+  "The following is my answer.",
+  "Mother loves me very much.",
+  "People are walking in the park.",
+  "Today we will learn a new text.",
+  "I think you are right.",
+  "He walks very carefully.",
+  "Everyone is one of a kind.",
+  "The Peach Garden Oath tells the story of Liu Bei, Guan Yu and Zhang Fei becoming sworn brothers.",
+  "We must be broad-minded and forgive others.",
+  "Learning Chinese is not something done in a short time.",
+  "This story moves people's hearts.",
+  "He is a very famous doctor.",
+  "Hearing the news, I was greatly shocked.",
+  "He was so sick that he could not bear the hardship.",
+  "He perseveres without giving up in his running practice.",
+  "The tiger bared its fangs and claws and pounced over.",
+  "The shop sells all kinds of toys.",
+  "He disagreed and continued playing.",
+  "He is one hundred percent a good person.",
+  "He walks arrogantly.",
+  "There was a heavy rain today.",
+  "I cannot wait to go home.",
+  "Seeing the teacher, I feel deep respect.",
+  "Vehicles flow endlessly on the road.",
+  "Spring has come, the earth is full of life.",
+  "She was so touched that tears burst out.",
+  "They are good friends who treat each other with sincerity.",
+  "During the war, people lived in misery.",
+  "She is clever and smart, her results are very good.",
+  "New shops keep appearing.",
+  "He concentrates fully on reading.",
+  "He works without fearing hardship.",
+  "The soldiers bravely charged into battle.",
+  "New shops spring up like mushrooms.",
+  "Please wait and see.",
+  "I suddenly understood and knew the answer.",
+  "This performance is majestic.",
+  "He got first place, beyond expectation.",
+  "We share the same goal and are good friends.",
+  "He thinks he is capable of everything.",
+  "This palace is golden and splendid.",
+  "The people are full of complaints.",
+  "He answered the question calmly and unhurriedly.",
+  "Hearing the good news, my blood boiled with passion.",
+  "Everyone celebrated very happily.",
+  "He is a teacher true to his name.",
+  "My results are slightly better.",
+  "Do things with a beginning and an end.",
+  "His clothes are broken and torn.",
+  "He walks without looking sideways.",
+  "He reads ten lines at a glance.",
+  "Suffering loss is a blessing, do not be too calculative.",
+  "They depend on each other.",
+  "He is as afraid as a bird startled by the bow.",
+  "I believe completely."
+    ];
+
+    const msSentences = [
+      "Apa yang kamu buat?",
+  "Sila baca ayat ini.",
+  "Perkataan itu ditulis di atas kertas.",
+  "Saya suka membaca.",
+  "Saya ada sebiji epal.",
+  "Kami ialah murid yang baik.",
+  "Saya sendiri boleh pakai baju.",
+  "Yang mana beg sekolah kamu?",
+  "Hari ini tarikh berapa?",
+  "Saya makan dahulu, kemudian buat kerja rumah.",
+  "Sila bina ayat dengan perkataan ini.",
+  "Jawapan kamu sangat betul.",
+  "Saya ada satu soalan.",
+  "Saya boleh tolong kamu.",
+  "Sila jawab soalan saya.",
+  "Saya tiada pensel.",
+  "Saya suka belajar Bahasa Cina.",
+  "Sila tulis di bawah.",
+  "Sila tulis tulisan di dalam petak.",
+  "Cikgu mengajar kami membaca.",
+  "Ibu sedang memasak di dapur.",
+  "Sila jawab soalan berdasarkan teks.",
+  "Mereka ialah kawan baik saya.",
+  "Pensel yang mana kepunyaan kamu?",
+  "Beg dia sangat berat.",
+  "Sila bangun.",
+  "Ini buku saya.",
+  "Kandungan buku ini sangat menarik.",
+  "Saya mahu belajar bersungguh-sungguh.",
+  "Apakah makna perkataan ini?",
+  "Perkataan ini sangat susah ditulis.",
+  "Apakah sebutan bagi perkataan ini?",
+  "Kami sudah sampai ke sekolah.",
+  "Kanak-kanak itu sangat comel.",
+  "Jawapan kami sama.",
+  "Ayah pergi bekerja.",
+  "Dia ialah penulis buku ini.",
+  "Kehidupan kami sangat bahagia.",
+  "Ini ialah jawapan standard.",
+  "Saya berasa sangat gembira.",
+  "Semua orang ialah murid yang baik.",
+  "Kerana hujan, kami tidak keluar rumah.",
+  "Saya faham maksud kamu.",
+  "Cikgu memberi kami penjelasan tentang soalan ini.",
+  "Dia ialah rakan sekelas saya.",
+  "Berikut ialah jawapan saya.",
+  "Ibu sangat menyayangi saya.",
+  "Orang ramai sedang berjalan di taman.",
+  "Hari ini kami akan belajar teks baharu.",
+  "Saya berpendapat kamu betul.",
+  "Dia berjalan dengan sangat berhati-hati.",
+  "Setiap orang adalah unik.",
+  "Tao Yuan Jie Yi menceritakan kisah Liu Bei, Guan Yu dan Zhang Fei bersumpah menjadi saudara.",
+  "Kita harus berhati lapang dan memaafkan orang lain.",
+  "Belajar Bahasa Cina bukan dalam masa yang singkat.",
+  "Cerita ini sangat menyentuh hati.",
+  "Dia seorang doktor yang sangat terkenal.",
+  "Mendengar berita itu, saya sangat terkejut.",
+  "Dia sakit hingga sangat menderita.",
+  "Dia berterusan tanpa berputus asa berlatih berlari.",
+  "Harimau itu menunjukkan gigi dan cakarnya lalu menerpa.",
+  "Kedai itu menjual pelbagai jenis mainan.",
+  "Dia tidak bersetuju dan terus bermain.",
+  "Dia seorang yang baik seratus peratus.",
+  "Dia berjalan dengan berlagak sombong.",
+  "Hari ini hujan lebat.",
+  "Saya tidak sabar mahu balik.",
+  "Melihat cikgu, saya berasa sangat hormat.",
+  "Kenderaan di jalan raya mengalir tanpa henti.",
+  "Musim bunga tiba, bumi penuh tenaga hidup.",
+  "Dia tersentuh hingga air mata mengalir keluar.",
+  "Mereka kawan baik yang ikhlas dan setia antara satu sama lain.",
+  "Semasa perang, rakyat hidup menderita.",
+  "Dia cerdas dan bijak, keputusannya sangat baik.",
+  "Kedai baharu muncul tanpa henti.",
+  "Dia tumpukan perhatian sepenuhnya membaca buku.",
+  "Dia bekerja tanpa takut penat.",
+  "Askar berani menyerbu ke medan perang.",
+  "Kedai baharu tumbuh seperti cendawan selepas hujan.",
+  "Sila tunggu dan lihat.",
+  "Saya tiba-tiba faham dan tahu jawapannya.",
+  "Persembahan ini sangat megah dan hebat.",
+  "Dia dapat tempat pertama, di luar jangkaan.",
+  "Kami sama cita-cita dan kawan baik.",
+  "Dia fikir dia boleh buat semua.",
+  "Istana ini berkilauan emas dan hijau.",
+  "Rakyat banyak rungutan di mana-mana.",
+  "Dia menjawab soalan dengan tidak tergesa-gesa.",
+  "Mendengar berita baik, semangat saya membara.",
+  "Semua orang sangat gembira meraikannya.",
+  "Dia guru yang benar-benar layak dengan namanya.",
+  "Keputusan saya sedikit lebih baik.",
+  "Buat kerja mesti ada permulaan dan akhir.",
+  "Bajunya rosak teruk.",
+  "Dia berjalan tidak pandang ke tepi.",
+  "Dia baca sepuluh baris sekali pandang.",
+  "Rugi itu berkat, jangan terlalu kira.",
+  "Mereka bergantung antara satu sama lain.",
+  "Dia sangat takut seperti burung yang pernah ditakuti busur.",
+  "Saya percaya sepenuhnya."
+    ];
+
+    // ===== Set 词库管理 =====
+const wordSets = {
+  "Set 1": {
+    zh: zh,
+    py: py,
+    en: en,
+    ms: ms,
+    zhSentences: zhSentences,
+    enSentences: enSentences,
+    msSentences: msSentences
+  },
+
+  "Set 2": {
+    zh: ["还有",
+  "月亮",
+  "知道",
+  "第一",
+  "说明",
+  "小小",
+  "森林",
+  "上学",
+  "两个",
+  "发现",
+  "开心",
+  "起来",
+  "阳光",
+  "唱歌",
+  "生字",
+  "睡衣",
+  "掌握",
+  "青蛙",
+  "气球",
+  "说出",
+  "相同",
+  "多少",
+  "儿歌",
+  "早操",
+  "看图",
+  "我和",
+  "写出",
+  "花儿",
+  "比较",
+  "超强",
+  "弯弯",
+  "故事",
+  "怎样",
+  "哥哥",
+  "香蕉",
+  "小鹿",
+  "演变",
+  "知识",
+  "怎么",
+  "适当",
+  "天桥",
+  "狮子",
+  "读书",
+  "动作",
+  "露珠",
+  "滑梯",
+  "看到",
+  "语气",
+  "量词",
+  "乐园",
+  "积木",
+  "姐姐",
+  "地方",
+  "大小",
+  "表示",
+  "天空",
+  "地上",
+  "时候",
+  "意思",
+  "小河",
+  "睡觉",
+  "铅笔",
+  "公园",
+  "音节",
+  "姓名",
+  "日期",
+  "哪些",
+  "主题",
+  "因为",
+  "想说",
+  "第二",
+  "回来",
+  "语文",
+  "作者",
+  "蜂蜜",
+  "跟着",
+  "雨停",
+  "停了",
+  "汽车",
+  "小兔",
+  "画线",
+  "背诵",
+  "改动",
+  "学校",
+  "进行",
+  "天上",
+  "很多",
+  "就是",
+  "看看",
+  "课本",
+  "哪里",
+  "蝴蝶",
+  "说话",
+  "有关",
+  "走进",
+  "不同",
+  "圆圆",
+  "有趣",
+  "这是",
+  "一片"],
+    py: ["hái yǒu",
+  "yuè liang",
+  "zhī dào",
+  "dì yī",
+  "shuō míng",
+  "xiǎo xiǎo",
+  "sēn lín",
+  "shàng xué",
+  "liǎng gè",
+  "fā xiàn",
+  "kāi xīn",
+  "qǐ lái",
+  "yáng guāng",
+  "chàng gē",
+  "shēng zì",
+  "shuì yī",
+  "zhǎng wò",
+  "qīng wā",
+  "qì qiú",
+  "shuō chū",
+  "xiāng tóng",
+  "duō shǎo",
+  "ér gē",
+  "zǎo cāo",
+  "kàn tú",
+  "wǒ hé",
+  "xiě chū",
+  "huā er",
+  "bǐ jiào",
+  "chāo qiáng",
+  "wān wān",
+  "gù shi",
+  "zěn yàng",
+  "gē ge",
+  "xiāng jiāo",
+  "xiǎo lù",
+  "yǎn biàn",
+  "zhī shi",
+  "zěn me",
+  "shì dàng",
+  "tiān qiáo",
+  "shī zi",
+  "dú shū",
+  "dòng zuò",
+  "lù zhū",
+  "huá tī",
+  "kàn dào",
+  "yǔ qì",
+  "liàng cí",
+  "lè yuán",
+  "jī mù",
+  "jiě jie",
+  "dì fang",
+  "dà xiǎo",
+  "biǎo shì",
+  "tiān kōng",
+  "dì shàng",
+  "shí hou",
+  "yì si",
+  "xiǎo hé",
+  "shuì jiào",
+  "qiān bǐ",
+  "gōng yuán",
+  "yīn jié",
+  "xìng míng",
+  "rì qī",
+  "nǎ xiē",
+  "zhǔ tí",
+  "yīn wèi",
+  "xiǎng shuō",
+  "dì èr",
+  "huí lái",
+  "yǔ wén",
+  "zuò zhě",
+  "fēng mì",
+  "gēn zhe",
+  "yǔ tíng",
+  "tíng le",
+  "qì chē",
+  "xiǎo tù",
+  "huà xiàn",
+  "bèi sòng",
+  "gǎi dòng",
+  "xué xiào",
+  "jìn xíng",
+  "tiān shàng",
+  "hěn duō",
+  "jiù shì",
+  "kàn kan",
+  "kè běn",
+  "nǎ lǐ",
+  "hú dié",
+  "shuō huà",
+  "yǒu guān",
+  "zǒu jìn",
+  "bù tóng",
+  "yuán yuán",
+  "yǒu qù",
+  "zhè shì",
+  "yī piàn"],
+    en: ["also have",
+  "moon",
+  "know",
+  "first",
+  "explanation",
+  "small",
+  "forest",
+  "go to school",
+  "two",
+  "discover",
+  "happy",
+  "get up",
+  "sunlight",
+  "sing",
+  "new word",
+  "pyjamas",
+  "master",
+  "frog",
+  "balloon",
+  "say out",
+  "same",
+  "how many",
+  "children's song",
+  "morning exercise",
+  "look at the picture",
+  "I and",
+  "write out",
+  "flower",
+  "compare",
+  "super strong",
+  "curved",
+  "story",
+  "how",
+  "elder brother",
+  "banana",
+  "little deer",
+  "evolution",
+  "knowledge",
+  "how",
+  "appropriate",
+  "pedestrian bridge",
+  "lion",
+  "read",
+  "movement",
+  "dewdrop",
+  "slide",
+  "see",
+  "tone",
+  "measure word",
+  "playground",
+  "building blocks",
+  "elder sister",
+  "place",
+  "size",
+  "show",
+  "sky",
+  "on the ground",
+  "time",
+  "meaning",
+  "small river",
+  "sleep",
+  "pencil",
+  "park",
+  "syllable",
+  "name",
+  "date",
+  "which",
+  "theme",
+  "because",
+  "want to say",
+  "second",
+  "come back",
+  "Chinese language",
+  "author",
+  "honey",
+  "follow",
+  "rain stops",
+  "stopped",
+  "car",
+  "little rabbit",
+  "underline",
+  "memorise",
+  "change",
+  "school",
+  "carry out",
+  "in the sky",
+  "many",
+  "is",
+  "look",
+  "textbook",
+  "where",
+  "butterfly",
+  "speak",
+  "related",
+  "walk into",
+  "different",
+  "round",
+  "interesting",
+  "this is",
+  "a piece"],
+    ms: ["juga ada",
+  "bulan",
+  "tahu",
+  "pertama",
+  "penjelasan",
+  "kecil",
+  "hutan",
+  "pergi ke sekolah",
+  "dua",
+  "menemui",
+  "gembira",
+  "bangun",
+  "cahaya matahari",
+  "menyanyi",
+  "perkataan baharu",
+  "pijama",
+  "menguasai",
+  "katak",
+  "belon",
+  "sebut",
+  "sama",
+  "berapa",
+  "lagu kanak-kanak",
+  "senaman pagi",
+  "lihat gambar",
+  "saya dan",
+  "tulis",
+  "bunga",
+  "banding",
+  "sangat kuat",
+  "bengkok",
+  "cerita",
+  "bagaimana",
+  "abang",
+  "pisang",
+  "rusa kecil",
+  "evolusi",
+  "pengetahuan",
+  "bagaimana",
+  "sesuai",
+  "jejantas",
+  "singa",
+  "membaca",
+  "gerakan",
+  "titisan embun",
+  "gelongsor",
+  "nampak",
+  "nada",
+  "penjodoh bilangan",
+  "taman permainan",
+  "bongkah mainan",
+  "kakak",
+  "tempat",
+  "saiz",
+  "menunjukkan",
+  "langit",
+  "di atas tanah",
+  "masa",
+  "makna",
+  "sungai kecil",
+  "tidur",
+  "pensel",
+  "taman",
+  "suku kata",
+  "nama",
+  "tarikh",
+  "yang mana",
+  "tema",
+  "kerana",
+  "mahu cakap",
+  "kedua",
+  "balik",
+  "Bahasa Cina",
+  "penulis",
+  "madu",
+  "mengikut",
+  "hujan berhenti",
+  "berhenti",
+  "kereta",
+  "arnab kecil",
+  "gariskan",
+  "hafal",
+  "ubah",
+  "sekolah",
+  "menjalankan",
+  "di langit",
+  "banyak",
+  "ialah",
+  "lihat",
+  "buku teks",
+  "di mana",
+  "kupu-kupu",
+  "bercakap",
+  "berkaitan",
+  "masuk ke",
+  "berbeza",
+  "bulat",
+  "menarik",
+  "ini ialah",
+  "sekeping"],
+    zhSentences: [
+      "我还有一个弟弟。",
+  "月亮又圆又亮。",
+  "我知道这个答案。",
+  "他是第一个到达的人。",
+  "老师给我们说明这道题。",
+  "小小的蚂蚁在搬食物。",
+  "森林里有很多动物。",
+  "我每天上学。",
+  "我有两个苹果。",
+  "我发现了一只小鸟。",
+  "我今天很开心。",
+  "请站起来。",
+  "阳光照进房间里。",
+  "她喜欢唱歌。",
+  "今天我们要学生字。",
+  "我穿上睡衣准备睡觉。",
+  "我掌握了这个字的写法。",
+  "青蛙在池塘里跳。",
+  "弟弟在玩气球。",
+  "请说出你的名字。",
+  "我们的答案相同。",
+  "你有多少本书？",
+  "我会唱这首儿歌。",
+  "我们每天早上做早操。",
+  "请看图回答问题。",
+  "我和妈妈一起去买菜。",
+  "请写出你的答案。",
+  "花儿开得很美丽。",
+  "这两个字有什么不同？比较一下。",
+  "他跑步超强。",
+  "月亮弯弯的。",
+  "妈妈给我讲了一个故事。",
+  "怎样做这道题？",
+  "哥哥在打篮球。",
+  "我喜欢吃香蕉。",
+  "小鹿在森林里跑。",
+  "这个字是经过演变而来的。",
+  "我从书上学到很多知识。",
+  "你怎么了？",
+  "请选择适当的词语。",
+  "我们走过天桥去学校。",
+  "狮子是森林之王。",
+  "我喜欢读书。",
+  "他的动作很快。",
+  "露珠在叶子上闪闪发光。",
+  "弟弟喜欢玩滑梯。",
+  "我看到一只小鸟。",
+  "他说话的语气很温柔。",
+  "这是量词的用法。",
+  "儿童乐园里有很多小朋友。",
+  "我用积木搭了一座房子。",
+  "姐姐在弹钢琴。",
+  "这个地方很美丽。",
+  "这两个苹果大小一样。",
+  "这个符号表示停止。",
+  "天空很蓝。",
+  "书掉在地上。",
+  "小时候我很快乐。",
+  "这个字的意思是什么？",
+  "小河的水很清澈。",
+  "我晚上九点睡觉。",
+  "我用铅笔写字。",
+  "我们在公园里玩。",
+  "这个字的音节是什么？",
+  "请写你的姓名。",
+  "今天的日期是十月一日。",
+  "你喜欢哪些书？",
+  "这篇文章的主题是环保。",
+  "因为下雨，我们不出门。",
+  "我想说谢谢。",
+  "他是第二个人。",
+  "妈妈叫我快点回来。",
+  "我喜欢上语文课。",
+  "他是这本书的作者。",
+  "蜜蜂在采蜂蜜。",
+  "小狗跟着我回家。",
+  "雨停了，我们出去玩。",
+  "雨终于停了。",
+  "爸爸开汽车去上班。",
+  "小兔在草地上跳。",
+  "请画线。",
+  "我每天背诵课文。",
+  "老师改动了一下我的作文。",
+  "我的学校很大。",
+  "我们正在进行比赛。",
+  "天上有很多星星。",
+  "我有很多朋友。",
+  "他就是我的哥哥。",
+  "请看看这幅图。",
+  "请打开课本。",
+  "你在哪里？",
+  "蝴蝶在花丛中飞。",
+  "请不要在图书馆里说话。",
+  "这件事和我有关。",
+  "请走进教室。",
+  "我们的答案不同。",
+  "月亮圆圆的。",
+  "这个故事很有趣。",
+  "这是我的书。",
+  "我吃了一片面包。"
+    ],
+    enSentences: [
+      "I also have a younger brother.",
+  "The moon is round and bright.",
+  "I know this answer.",
+  "He is the first person to arrive.",
+  "The teacher gave us an explanation of this question.",
+  "The small ants are carrying food.",
+  "There are many animals in the forest.",
+  "I go to school every day.",
+  "I have two apples.",
+  "I found a small bird.",
+  "I am very happy today.",
+  "Please stand up.",
+  "Sunlight shines into the room.",
+  "She likes to sing.",
+  "Today we will learn new words.",
+  "I put on my pyjamas to sleep.",
+  "I have mastered how to write this word.",
+  "The frog jumps in the pond.",
+  "My brother is playing with a balloon.",
+  "Please say out your name.",
+  "Our answers are the same.",
+  "How many books do you have?",
+  "I can sing this children's song.",
+  "We do morning exercise every day.",
+  "Please look at the picture and answer the question.",
+  "I go to buy vegetables with mother.",
+  "Please write out your answer.",
+  "The flowers bloom beautifully.",
+  "What is the difference between these two words? Compare them.",
+  "He runs super strong.",
+  "The moon is curved.",
+  "Mother told me a story.",
+  "How do you do this question?",
+  "Brother is playing basketball.",
+  "I like to eat bananas.",
+  "The little deer runs in the forest.",
+  "This word has undergone evolution.",
+  "I gained a lot of knowledge from books.",
+  "What is wrong with you?",
+  "Please choose the appropriate word.",
+  "We cross the pedestrian bridge to go to school.",
+  "The lion is the king of the forest.",
+  "I like to read.",
+  "His movement is very fast.",
+  "Dewdrops sparkle on the leaves.",
+  "My brother likes to play on the slide.",
+  "I saw a small bird.",
+  "His tone of voice is very gentle.",
+  "This is the use of measure words.",
+  "There are many children in the playground.",
+  "I built a house with building blocks.",
+  "Sister is playing the piano.",
+  "This place is very beautiful.",
+  "These two apples are the same size.",
+  "This symbol shows stop.",
+  "The sky is very blue.",
+  "The book fell on the ground.",
+  "When I was small, I was very happy.",
+  "What is the meaning of this word?",
+  "The water in this small river is very clear.",
+  "I sleep at nine at night.",
+  "I write with a pencil.",
+  "We play in the park.",
+  "What is the syllable of this word?",
+  "Please write your name.",
+  "Today's date is the first of October.",
+  "Which books do you like?",
+  "The theme of this article is environmental protection.",
+  "Because it is raining, we do not go out.",
+  "I want to say thank you.",
+  "He is the second person.",
+  "Mother asked me to come back quickly.",
+  "I like to learn Chinese language.",
+  "He is the author of this book.",
+  "The bees are collecting honey.",
+  "The puppy follows me home.",
+  "The rain has stopped, we go out to play.",
+  "The rain has finally stopped.",
+  "Father drives a car to work.",
+  "The little rabbit jumps on the grass.",
+  "Please underline.",
+  "I memorise the text every day.",
+  "The teacher changed my essay a little.",
+  "My school is very big.",
+  "We are carrying out a competition.",
+  "There are many stars in the sky.",
+  "I have many friends.",
+  "He is my brother.",
+  "Please look at this picture.",
+  "Please open the textbook.",
+  "Where are you?",
+  "Butterflies fly among the flowers.",
+  "Please do not speak in the library.",
+  "This matter is related to me.",
+  "Please walk into the classroom.",
+  "Our answers are different.",
+  "The moon is round.",
+  "This story is very interesting.",
+  "This is my book.",
+  "I ate a piece of bread."
+    ],
+    msSentences: [
+      "Saya juga ada seorang adik.",
+  "Bulan sangat bulat dan terang.",
+  "Saya tahu jawapan ini.",
+  "Dia ialah orang pertama yang tiba.",
+  "Cikgu memberi kami penjelasan tentang soalan ini.",
+  "Semut kecil sedang membawa makanan.",
+  "Terdapat banyak haiwan di dalam hutan.",
+  "Saya pergi ke sekolah setiap hari.",
+  "Saya mempunyai dua biji epal.",
+  "Saya menemui seekor burung kecil.",
+  "Saya sangat gembira hari ini.",
+  "Sila bangun.",
+  "Cahaya matahari masuk ke dalam bilik.",
+  "Dia suka menyanyi.",
+  "Hari ini kami akan belajar perkataan baharu.",
+  "Saya memakai pijama untuk tidur.",
+  "Saya menguasai cara menulis perkataan ini.",
+  "Katak melompat di dalam kolam.",
+  "Adik bermain belon.",
+  "Sila sebut nama kamu.",
+  "Jawapan kami sama.",
+  "Berapa banyak buku kamu ada?",
+  "Saya boleh menyanyi lagu kanak-kanak ini.",
+  "Kami membuat senaman pagi setiap hari.",
+  "Sila lihat gambar dan jawab soalan.",
+  "Saya dan ibu pergi membeli sayur.",
+  "Sila tulis jawapan kamu.",
+  "Bunga mekar dengan cantik.",
+  "Apakah perbezaan antara dua perkataan ini? Bandingkan.",
+  "Dia berlari sangat kuat.",
+  "Bulan bengkok.",
+  "Ibu menceritakan satu cerita kepada saya.",
+  "Bagaimana membuat soalan ini?",
+  "Abang sedang bermain bola keranjang.",
+  "Saya suka makan pisang.",
+  "Rusa kecil berlari di dalam hutan.",
+  "Perkataan ini mengalami evolusi.",
+  "Saya mendapat banyak pengetahuan daripada buku.",
+  "Kenapa kamu?",
+  "Sila pilih perkataan yang sesuai.",
+  "Kami melintas jejantas untuk pergi ke sekolah.",
+  "Singa ialah raja hutan.",
+  "Saya suka membaca.",
+  "Gerakannya sangat cepat.",
+  "Titisan embun berkilauan di atas daun.",
+  "Adik suka bermain gelongsor.",
+  "Saya nampak seekor burung kecil.",
+  "Nada suaranya sangat lembut.",
+  "Ini ialah penggunaan penjodoh bilangan.",
+  "Terdapat banyak kanak-kanak di taman permainan.",
+  "Saya membina sebuah rumah dengan bongkah mainan.",
+  "Kakak sedang bermain piano.",
+  "Tempat ini sangat cantik.",
+  "Dua biji epal ini sama saiz.",
+  "Simbol ini menunjukkan berhenti.",
+  "Langit sangat biru.",
+  "Buku jatuh ke atas tanah.",
+  "Semasa kecil, saya sangat gembira.",
+  "Apakah makna perkataan ini?",
+  "Air sungai kecil ini sangat jernih.",
+  "Saya tidur pada pukul sembilan malam.",
+  "Saya menulis dengan pensel.",
+  "Kami bermain di taman.",
+  "Apakah suku kata bagi perkataan ini?",
+  "Sila tulis nama kamu.",
+  "Tarikh hari ini ialah satu Oktober.",
+  "Buku yang mana kamu suka?",
+  "Tema artikel ini ialah alam sekitar.",
+  "Kerana hujan, kami tidak keluar.",
+  "Saya mahu cakap terima kasih.",
+  "Dia ialah orang kedua.",
+  "Ibu meminta saya balik dengan cepat.",
+  "Saya suka belajar Bahasa Cina.",
+  "Dia ialah penulis buku ini.",
+  "Lebah sedang mengambil madu.",
+  "Anak anjing mengikut saya balik ke rumah.",
+  "Hujan sudah berhenti, kami keluar bermain.",
+  "Hujan akhirnya berhenti.",
+  "Ayah memandu kereta ke tempat kerja.",
+  "Arnab kecil melompat di atas rumput.",
+  "Sila gariskan.",
+  "Saya menghafal teks setiap hari.",
+  "Cikgu mengubah karangan saya sedikit.",
+  "Sekolah saya sangat besar.",
+  "Kami sedang menjalankan pertandingan.",
+  "Terdapat banyak bintang di langit.",
+  "Saya mempunyai banyak kawan.",
+  "Dia ialah abang saya.",
+  "Sila lihat gambar ini.",
+  "Sila buka buku teks.",
+  "Di mana kamu?",
+  "Kupu-kupu terbang di antara bunga.",
+  "Jangan bercakap di dalam perpustakaan.",
+  "Perkara ini berkaitan dengan saya.",
+  "Sila masuk ke dalam bilik darjah.",
+  "Jawapan kami berbeza.",
+  "Bulan sangat bulat.",
+  "Cerita ini sangat menarik.",
+  "Ini ialah buku saya.",
+  "Saya makan sekeping roti."
+    ]
+  },
+
+  "Set 3": {
+    zh: ["篮球", "老师", "学校"],
+    py: ["lán qiú", "lǎo shī", "xué xiào"],
+    en: ["basketball", "teacher", "school"],
+    ms: ["bola keranjang", "guru", "sekolah"],
+    zhSentences: [
+      "我喜欢打篮球。",
+      "我的老师很亲切。",
+      "我每天去学校上课。"
+    ],
+    enSentences: [
+      "I like playing basketball.",
+      "My teacher is very kind.",
+      "I go to school every day."
+    ],
+    msSentences: [
+      "Saya suka bermain bola keranjang.",
+      "Guru saya sangat baik hati.",
+      "Saya pergi ke sekolah setiap hari."
+    ]
+  }
+};
+
+let activeSet = wordSets["Set 1"];
+
+    // ===== DOM & 语音 =====
+    let currentIndex = 0;
+    const questionDiv = document.getElementById('question');
+    const wordDiv = document.getElementById('word');
+    const pinyinDiv = document.getElementById('pinyin');
+    const meaningDiv = document.getElementById('meaning');
+
+    function setMeaning(text) { meaningDiv.textContent = text || ''; }
+
+    // 统一的朗读函数（默认：慢速 0.4、音高 0.6）
+    function speak(text, lang, preferNames = [], rate = 0.4, pitch = 0.6) {
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = lang;
+      u.rate = rate;
+      u.pitch = pitch;
+
+      const trySpeak = () => {
+        const voices = speechSynthesis.getVoices() || [];
+        let candidates = voices.filter(v => (v.lang || '').toLowerCase().startsWith(lang.toLowerCase()));
+        // 如果没有马来语，回退印尼语
+        if (!candidates.length && lang.toLowerCase().startsWith('ms')) {
+          candidates = voices.filter(v => (v.lang || '').toLowerCase().startsWith('id'));
+          if (candidates.length) u.lang = 'id-ID';
+        }
+        for (const key of preferNames) {
+          const found = candidates.find(v => (v.name || '').toLowerCase().includes(key.toLowerCase()));
+          if (found) { u.voice = found; break; }
+        }
+        if (!u.voice && candidates.length) u.voice = candidates[0];
+        speechSynthesis.cancel();
+        speechSynthesis.speak(u);
+      };
+
+      if (speechSynthesis.getVoices().length === 0) {
+        speechSynthesis.onvoiceschanged = trySpeak;
+      }
+      trySpeak();
+    }
+
+    // ===== 华文为主（按钮函数不再覆盖速率/音高）=====
+    function playChineseWord() {
+  const text = activeSet.zh[currentIndex] || '';
+  const pinyin = activeSet.py[currentIndex] || '';
+
+  setMeaning(pinyin);
+  speak(text, 'zh-CN', ['Xiaoyi','Microsoft','male']);
+}
+
+    function showEnglish() {
+  const text = activeSet.en[currentIndex] || '(待添加英文)';
+  setMeaning(text);
+  speak(text, 'en-US', ['Google','Microsoft','Natural']);
+}
+
+    function showMalay() {
+  const text = activeSet.ms[currentIndex] || '(待添加马来文)';
+  setMeaning(text);
+  speak(text, 'ms-MY', ['Malay','Bahasa','Microsoft']);
+}
+
+    function showChineseSentence() {
+  const text = activeSet.zhSentences[currentIndex] || '(待添加华文造句)';
+  setMeaning(text);
+  speak(text, 'zh-CN', ['Xiaoyi','Microsoft']);
+}
+
+    function showEnglishSentence() {
+  const text = activeSet.enSentences[currentIndex] || '(待添加英文句子)';
+  setMeaning(text);
+  speak(text, 'en-US', ['Google','Microsoft']);
+}
+
+    function showMalaySentence() {
+  const text = activeSet.msSentences[currentIndex] || '(待添加马来文句子)';
+  setMeaning(text);
+  speak(text, 'ms-MY', ['Malay','Bahasa','Microsoft']);
+}
+
+    function nextWord() {
+      if (currentIndex < activeSet.zh.length - 1) {
+        currentIndex++;
+        updateQuestion();
+      }
+    }
+
+    function prevWord() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        updateQuestion();
+      }
+    }
+
+    function updateQuestion() {
+  questionDiv.innerText = `题目 ${currentIndex + 1}`;
+  wordDiv.innerText = activeSet.zh[currentIndex] || '—';
+  setMeaning('');
+}
+
+
+// ===== 搜索功能 =====
+function searchWord() {
+
+  const keyword = document.getElementById("searchInput").value.trim();
+
+  if (!keyword) {
+    alert("请输入要搜索的词语");
+    return;
+  }
+
+
+  const index = activeSet.zh.indexOf(keyword);
+
+
+  if (index !== -1) {
+
+    currentIndex = index;
+    updateQuestion();
+
+  } else {
+
+    alert("没有找到：" + keyword);
+
+  }
+
+}
+
+function goToReadingTest() {
+  const selectedSet = document.getElementById("setSelect").value;
+
+  window.location.href = `Reading/ReadingTest${selectedSet.replace("Set ", "Set")}.html`;
+}
+
+function goToMeaningTest() {
+  const selectedSet = document.getElementById("setSelect").value;
+
+  window.location.href = `Meaning/MeaningTest${selectedSet.replace("Set ", "Set")}.html`;
+}
+
+function changeSet() {
+  const selectedSet = document.getElementById("setSelect").value;
+
+  if (!wordSets[selectedSet]) return;
+
+  activeSet = wordSets[selectedSet];
+
+  currentIndex = 0;
+  updateQuestion();
+}
+
+updateQuestion();
+  </script>
+</body>
+</html>
