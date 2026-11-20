@@ -2168,17 +2168,16 @@ let currentStudentGrade = "";
 let currentTestName =
 "BC_P6_Meaning_Set 1";
 
+
 function getTestID(){
 
-    return (
-        currentStudentName +
-        "_" +
-        currentStudentGrade +
-        "_" +
-        SUBJECT +
-        "_" +
-        TEST_TYPE
-    );
+return (
+currentStudentName + "_" +
+currentStudentGrade + "_" +
+SUBJECT + "_" +
+TEST_TYPE + "_" +
+currentTestName
+);
 
 }
 
@@ -2651,14 +2650,9 @@ async function loadProgress(){
 
     try{
 
-        const studentID =
-currentStudentName +
-"_" +
-currentStudentGrade +
-"_" +
-SUBJECT +
-"_" +
-TEST_TYPE;
+
+const testID = getTestID();
+
 
 
         /*
@@ -3698,14 +3692,9 @@ async function saveProgress(){
 
     try{
 
-        const studentID =
-currentStudentName +
-"_" +
-currentStudentGrade +
-"_" +
-SUBJECT +
-"_" +
-TEST_TYPE;
+
+const testID = getTestID();
+
 
 
         await window.setDoc(
